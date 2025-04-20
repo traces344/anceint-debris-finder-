@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Ancient Debris Finder</title>
+  <style>
+    body { font-family: monospace; background: #111; color: #0f0; padding: 2rem; }
+    input, button { background: #222; color: #0f0; border: 1px solid #0f0; padding: 0.5rem; margin: 0.25rem; }
+    .results { margin-top: 1rem; white-space: pre-wrap; }
+    .mined { color: #888; text-decoration: line-through; }
+  </style>
+</head>
+<body>
+  <h1>Ancient Debris Finder</h1>
+  <label>Seed: <input type="text" id="seed"></label><br>
+  <label>X: <input type="number" id="x"></label>
+  <label>Z: <input type="number" id="z"></label><br>
+  <button onclick="findDebris()">Find Debris</button>
+
+  <div class="results" id="results"></div>
+
+  <script>
+    function pseudoRandom(seed, x, z) {
+      let h = x * 341873128712 + z * 132897987541 + seed;
+      h = (h ^ (h >> 13)) * 0x5bd1e995;
+      h = (h ^ (h >> 15));
+      return (h >>> 0) / 4294967296;
+    }
+
+    function findDebris() {
+      const seed = parseInt(document.getElementById('seed').value);
+      const baseX = parseInt(document.getElementById('x').value);
+      const baseZ = parseInt(document.getElementById('z').value);
+      const results = document.getElementById('results');
+
+      results.innerHTML = "<strong>Finding nearby ancient debris...</strong><br>";
+      let found = false;
+
+      // Look for potential debris spots around the provided coordinates
+      for (let dx = -2; dx <= 2; dx++) {
+        for (let dz = -2; dz <= 2; dz++) {
+          const chunkX = Math.floor((baseX + dx * 16) / 16);
+          const chunkZ = Math.floor((baseZ + dz * 16) / 16);
+          const chance = pseudoRandom(seed, chunkX, chunkZ);
+
+          // High chance for debris if pseudo-random value is above 0.95
+          if (chance > 0.95) {
+            const y = 15 + Math.floor(pseudoRandom(seed, chunkX, chunkZ + 1) * 10); // Random Y value between 15 and 25
+            const div = document.createElement('div');
+            div.innerHTML = `Possible debris at chunk (${chunkX}, ${chunkZ}) around Y=${y}`;
+            results.appendChild(div);
+            found = true;
+          }
+        }
+      }
+
+      if (!found) {
+        results.innerHTML += "<br>No strong debris signals nearby. Try moving or widening the range.";
+      }
+    }
+  </script>
+</body>
+</html>
